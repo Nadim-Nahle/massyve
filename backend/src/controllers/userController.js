@@ -1,8 +1,9 @@
 const User = require("../models/user");
 const { all } = require("../routes/userRoutes");
-const { addUser } = require("../services/UserService");
+const { addUser, getByEmail } = require("../services/UserService");
 const bcrypt = require(`bcryptjs`);
-const { validationResult } = require("express-validator/check");
+const jwt = require('jsonwebtoken');
+const TOKEN_SECRET = process.env.TOKEN_SECRET;
 
 //Get All Users Contoller
 async function getUsers(req, res) {
@@ -50,12 +51,12 @@ async function deleteUser(req, res) {
   try {
     const user = await User.findById(req.params.id);
     if (!user) {
-      return res.status(404).send();
+      return res.status(404).send({ error: "User not found" });
     }
-    await user.remove();
+    await user.deleteOne(); 
     res.status(200).send({ data: true });
   } catch (error) {
-    res.status(400).send(error.message);
+    res.status(400).send({ error: error.message });
   }
 }
 
@@ -77,4 +78,42 @@ async function createUser(req, res) {
   }
 }
 
-module.exports = { deleteUser, getUserById, getUsers, updateUser, createUser };
+async function login(req, res) {
+  try {
+
+    const user = await getByEmail(req.body.email);
+    if (!user) return res.status(401).send('invalid email');
+
+    const validPassword = await bcrypt.compare(req.body.password, user.password);
+    if (!validPassword) return res.status(400).send('invalid password');
+
+    //CRETAE USER AND JWT TOKEN
+    const token = jwt.sign(
+      { _id: user._id, name: user.name, email: user.email },
+      TOKEN_SECRET
+
+    );
+
+    return res.send({
+      user: {
+        name: user.name,
+        email: user.email, _id: user._id,
+        roles: user.roles,
+        username: user.username,
+        followings: user.followings
+      },
+      secret_token: token,
+      url: user.url
+    },
+    );
+
+    //CATCHING ERRORS
+  } catch (error) {
+
+    //console.log(error);
+    res.status(500).send(error);
+
+  }
+}
+
+module.exports = { deleteUser, getUserById, getUsers, updateUser, createUser, login };
