@@ -13,6 +13,12 @@ async function addUser(body, hashPassword) {
   return await user.save();
 }
 
+async function getByEmail(email) {
+  return await User.findOne({
+    email,
+  });
+}
+
 module.exports = {
-  addUser,
+  addUser,getByEmail
 };
