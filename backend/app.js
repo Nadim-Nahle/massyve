@@ -5,7 +5,7 @@ const port = process.env.PORT;
 const DB_CONNECTION = process.env.DB_CONNECTION;
 require("dotenv/config");
 
-const userRoutes = require("./routes/userRoutes");
+const userRoutes = require("./src/routes/userRoutes");
 
 mongoose.connect(process.env.MONGO_URI,{
 useNewUrlParser: true,
