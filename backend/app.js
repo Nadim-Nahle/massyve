@@ -6,16 +6,11 @@ require("dotenv/config");
 
 const userRoutes = require("./src/routes/userRoutes");
 
-mongoose.connect(process.env.MONGO_URI,{
-useNewUrlParser: true,
-useUnifiedTopology: true,  
-})
+mongoose.connect(process.env.MONGO_URI,{})
 .then(() => console.log("connected to db"))
 .catch((e) => console.log("error connecting to db", e))
 
-fastify.register(require('@fastify/cors'), {
-  origin: '*'
-});
+
 fastify.register(userRoutes, { prefix: "/api/v1/users" });
 
 const start = async () => {
